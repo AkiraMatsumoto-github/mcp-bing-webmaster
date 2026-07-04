@@ -1,45 +1,35 @@
 # mcp-bing-webmaster
 
-A small, security-conscious [MCP](https://modelcontextprotocol.io) server for
-**Bing Webmaster Tools**. It exposes **read-only** analytics/indexing tools plus
-**non-destructive URL submission** — and nothing else.
+**Bing Webmaster Tools** 用の、セキュリティを重視した小さな [MCP](https://modelcontextprotocol.io) サーバーです。**読み取り系**の分析・インデックス情報ツールと、**非破壊の URL 送信**ツールだけを提供します。それ以外の操作は搭載しません。
 
-Written from scratch in pure Python on top of the official
-[`mcp`](https://pypi.org/project/mcp/) SDK (FastMCP). No Node wrapper, no
-telemetry, and it only ever talks to `ssl.bing.com`.
+公式 [`mcp`](https://pypi.org/project/mcp/) SDK（FastMCP）の上に、純 Python でゼロから実装しています。Node ラッパーなし、テレメトリなし、通信先は `ssl.bing.com` のみです。
 
-## Why this exists
+## なぜ作ったか
 
-Existing community Bing MCP servers ship the full API surface, including
-destructive operations (removing sites/sitemaps, site moves, crawl-setting
-changes) and, in some cases, a Node launcher that inherits the entire process
-environment. This server deliberately:
+既存のコミュニティ製 Bing MCP サーバーは API の全機能を載せており、破壊的操作（サイト・サイトマップの削除、サイト移行、クロール設定変更など）を含みます。また一部はプロセスの全環境変数を継承する Node ランチャーを使っています。本サーバーは意図的に次の設計にしています。
 
-- **omits every destructive/mutating endpoint** — an agent cannot remove a
-  site, sitemap, block, or trigger a site move because those tools do not exist;
-- reads the API key **only** from `BING_WEBMASTER_API_KEY` (never a CLI arg,
-  never hard-coded);
-- talks to a single host (`ssl.bing.com`) with an explicit request timeout;
-- pins its dependencies and is meant to be pinned by tag when consumed.
+- **破壊的・変更系エンドポイントをすべて省略** — サイト・サイトマップ・ブロックの削除やサイト移行のツールは*存在しない*ため、エージェントが誤って実行できません。
+- API キーは **`BING_WEBMASTER_API_KEY` 環境変数からのみ**取得（CLI 引数やハードコードは不可）。
+- 通信先は単一ホスト（`ssl.bing.com`）のみ。全リクエストに明示的なタイムアウトを設定。
+- 依存関係を固定し、利用側もタグ pin で参照する前提。
 
-## Requirements
+## 必要要件
 
-- Python 3.10+
-- A Bing Webmaster Tools API key — generate one at
-  <https://www.bing.com/webmasters> → **Settings → API access**.
+- Python 3.10 以上
+- Bing Webmaster Tools の API キー — <https://www.bing.com/webmasters> → **設定 → API アクセス** で発行
 
-## Usage
+## 使い方
 
-Expose your key and run via `uvx` (no install needed):
+キーを環境変数に設定し、`uvx` で実行します（インストール不要）。
 
 ```bash
-export BING_WEBMASTER_API_KEY="your-key"
+export BING_WEBMASTER_API_KEY="あなたのキー"
 uvx --from git+https://github.com/AkiraMatsumoto-github/mcp-bing-webmaster@v0.1.0 mcp-bing-webmaster
 ```
 
-### MCP client config
+### MCP クライアント設定
 
-Pin to a tag so you always run reviewed code:
+必ずタグを pin して、レビュー済みのコードだけを実行してください。
 
 ```json
 {
@@ -52,58 +42,54 @@ Pin to a tag so you always run reviewed code:
         "mcp-bing-webmaster"
       ],
       "env": {
-        "BING_WEBMASTER_API_KEY": "your-key"
+        "BING_WEBMASTER_API_KEY": "あなたのキー"
       }
     }
   }
 }
 ```
 
-## Tools
+## ツール一覧
 
-### Read (safe)
+### 読み取り（安全）
 
-| Tool | Bing method | Purpose |
+| ツール | Bing メソッド | 用途 |
 |---|---|---|
-| `get_sites` | GetUserSites | List verified sites |
-| `get_query_stats` | GetQueryStats | Query impressions/clicks/position |
-| `get_page_stats` | GetPageStats | Per-page traffic |
-| `get_page_query_stats` | GetPageQueryStats | Queries driving one page |
-| `get_rank_and_traffic_stats` | GetRankAndTrafficStats | Daily traffic time series |
-| `get_url_traffic_info` | GetUrlTrafficInfo | Traffic for a single URL |
-| `get_crawl_stats` | GetCrawlStats | Crawl statistics |
-| `get_crawl_issues` | GetCrawlIssues | Detected crawl issues |
-| `get_url_info` | GetUrlInfo | Index info for a URL |
-| `get_link_counts` | GetLinkCounts | Inbound link counts |
-| `get_url_submission_quota` | GetUrlSubmissionQuota | Remaining URL quota |
-| `get_content_submission_quota` | GetContentSubmissionQuota | Remaining content quota |
-| `get_keyword_stats` | GetKeywordStats | Keyword impressions¹ |
-| `get_related_keywords` | GetRelatedKeywords | Related keywords¹ |
+| `get_sites` | GetUserSites | 検証済みサイトの一覧 |
+| `get_query_stats` | GetQueryStats | クエリ別の表示回数・クリック・順位 |
+| `get_page_stats` | GetPageStats | ページ別トラフィック |
+| `get_page_query_stats` | GetPageQueryStats | 特定ページへ流入したクエリ |
+| `get_rank_and_traffic_stats` | GetRankAndTrafficStats | 日次トラフィックの時系列 |
+| `get_url_traffic_info` | GetUrlTrafficInfo | 単一 URL のトラフィック情報 |
+| `get_crawl_stats` | GetCrawlStats | クロール統計 |
+| `get_crawl_issues` | GetCrawlIssues | 検出されたクロール問題 |
+| `get_url_info` | GetUrlInfo | URL のインデックス情報 |
+| `get_link_counts` | GetLinkCounts | 被リンク数 |
+| `get_url_submission_quota` | GetUrlSubmissionQuota | URL 送信の残クォータ |
+| `get_content_submission_quota` | GetContentSubmissionQuota | コンテンツ送信の残クォータ |
+| `get_keyword_stats` | GetKeywordStats | キーワードの表示回数¹ |
+| `get_related_keywords` | GetRelatedKeywords | 関連キーワード¹ |
 
-¹ Keyword tool parameters follow the documented API signature and should be
-validated against a live account.
+¹ キーワード系ツールのパラメータは公式 API のシグネチャに準拠していますが、未検証です。実アカウントで検証のうえ利用してください。
 
-### Submit (non-destructive, consumes quota)
+### 送信（非破壊・クォータを消費）
 
-| Tool | Bing method | Purpose |
+| ツール | Bing メソッド | 用途 |
 |---|---|---|
-| `submit_url` | SubmitUrl | Submit one URL for (re)crawl |
-| `submit_url_batch` | SubmitUrlBatch | Submit a batch of URLs |
+| `submit_url` | SubmitUrl | 単一 URL を（再）クロール向けに送信 |
+| `submit_url_batch` | SubmitUrlBatch | 複数 URL を一括送信 |
 
-### Intentionally **not** implemented
+### 意図的に**搭載していない**操作
 
-`remove_site`, `add_site`, `verify_site`, `add_site_roles`, `submit_site_move`,
-`update_crawl_settings`, `remove_sitemap`, `add/remove_blocked_url`,
-`add/remove_deep_link_block`, `add/remove_query_parameter`,
-`add/remove_country_region_settings`, `add/remove_page_preview_block`.
+`remove_site`、`add_site`、`verify_site`、`add_site_roles`、`submit_site_move`、`update_crawl_settings`、`remove_sitemap`、`add/remove_blocked_url`、`add/remove_deep_link_block`、`add/remove_query_parameter`、`add/remove_country_region_settings`、`add/remove_page_preview_block`。
 
-## Development
+## 開発
 
 ```bash
 uv sync
 uv run python -c "import mcp_bing_webmaster.server as s; print([t.name for t in __import__('asyncio').run(s.mcp.list_tools())])"
 ```
 
-## License
+## ライセンス
 
-MIT — see [LICENSE](LICENSE).
+MIT — [LICENSE](LICENSE) を参照してください。
