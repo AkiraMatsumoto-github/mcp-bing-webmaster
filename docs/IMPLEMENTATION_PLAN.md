@@ -108,9 +108,9 @@ mcp-bing-webmaster/
 2. [x] pyproject / README / LICENSE(MIT) / .env.example / .gitignore
 3. [x] client.py（Bing API クライアント）・server.py（FastMCP・ツール登録）・__main__.py
 4. [x] ローカル起動確認（`uv sync` 成功／16ツール登録／キー未設定時は明確なエラー／stdio起動OK）
-5. [ ] commit → push → **タグ付け（v0.1.0）**  ← push はユーザー確認待ち
-6. [ ] logishift の `.mcp.json` に `bing-logishift` 追記
-7. [ ] **【APIキー発行後】** ライブ疎通確認（`get_sites` で実データ取得）
+5. [x] commit → push → **タグ付け（v0.1.0）** 完了（origin/main + v0.1.0 タグ push 済み）
+6. [x] logishift の `.mcp.json` に `bing-logishift` 追記（uvx + @v0.1.0 pin）
+7. [x] ライブ疎通確認 完了：GetUserSites で検証済み6サイト取得／GetUrlSubmissionQuota・GetRankAndTrafficStats も siteUrl 引数で正常応答
 
 ### 実装メモ（v0.1.0 時点）
 - 登録ツール16個（読み取り14 + 送信2）。破壊系は不搭載。
